@@ -114,14 +114,14 @@ func verificheFormali(address, message, token string) (err error) {
 
 	switch {
 	// Verifica il formato del cellulare.
-	case isCell.MatchString(address) == false:
+	case !isCell.MatchString(address):
 		err = fmt.Errorf("Formato del numero di cellulare non corretto: %s", cell)
 
 		// Verifica che il messsaggio non super 160 caratteri.
 	case len(message) > 160:
 		err = fmt.Errorf("Messaggio troppo lungo: %d caratteri. Max 160 caratteri ammessi", len(message))
 		// Verifica che il token sia nel formato corretto.
-	case isToken.MatchString(token) == false:
+	case !isToken.MatchString(token):
 		err = fmt.Errorf("Token non nel formato standard")
 	}
 

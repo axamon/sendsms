@@ -16,7 +16,7 @@ import (
 
 func TestRecuperaToken(t *testing.T) {
 	type args struct {
-		ctx      context.Context
+		// ctx      context.Context
 		username string
 		password string
 	}
