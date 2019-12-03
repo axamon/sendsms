@@ -1,4 +1,4 @@
-#sendsms
+# sendsms
 
 Usando le credenziali di Easyapi è possibile inviare sms in maniera programmatica.
 

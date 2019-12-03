@@ -10,6 +10,7 @@ type Configuration struct {
 	Password        string `json:"password"`
 }
 
+// ShortNum è il numero breve da usare.
 type ShortNum struct {
 	Number string `xml:"shortNumber"`
 }
