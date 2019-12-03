@@ -87,7 +87,7 @@ func RecuperaToken(ctx context.Context, username, password string) (token string
 		return "", fmt.Errorf("Error Impossibile leggere risposta client http: %s", err.Error())
 	}
 
-	fmt.Println(string(bodyresp))
+	// fmt.Println(string(bodyresp))
 
 	// Come da specifica chiude il body della response.
 	defer resp.Body.Close()
