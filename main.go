@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"flag"
+	"fmt"
 	"log"
 	"os"
 	"sendsms/easyapiclient"
@@ -12,7 +13,7 @@ import (
 
 // Configuration tiene gli elementi di configurazione
 type Configuration struct {
-	Username string `json:"username"`
+	UsernameEasyaPi string `json:"username"`
 	Password string `json:"password"`
 }
 
@@ -30,15 +31,14 @@ func main() {
 
 	// Recupera valori dal file di configurazione passato come argomento.
 	err := gonfig.GetConf(*file, &conf)
-
 	if err != nil {
 		log.Printf("Errore Impossibile recuperare informazioni dal file di configurazione: %s", *file)
 		os.Exit(1)
 	}
 
 	// Recupera un token sms valido.
-	token, _, err := easyapiclient.RecuperaToken(ctx, conf.Username, conf.Password)
-
+	fmt.Println(conf)
+	token, err := easyapiclient.RecuperaToken(ctx, conf.UsernameEasyaPi, conf.Password)
 	if err != nil {
 		log.Printf("Errore nel recupero del token sms: %s\n", err.Error())
 		os.Exit(1)
