@@ -7,6 +7,7 @@ package main
 import (
 	"context"
 	"flag"
+	"fmt"
 	"log"
 	"os"
 	"sendsms/easyapiclient"
@@ -27,18 +28,27 @@ var cell string
 // cell è il messaggio da inviare.
 var messaggio string
 
+var author bool
+
 func main() {
 	// Crea il contesto iniziale e la funzione cancel per uscire
 	// dal programma in modo pulito.
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
+	flag.BoolVar(&author, "a", false, "Per segnalizioni all'autore")
 	flag.StringVar(&confFile, "file", "conf.json", "File di configurazione")
 	flag.StringVar(&cell, "c", "", "Cellulare a cui inviare SMS")
 	flag.StringVar(&messaggio, "m", "", "Messaggio  da inviare")
 
 	// Parsa i parametri non di default passati all'avvio.
 	flag.Parse()
+
+	if author {
+		fmt.Println("Apire una segnalazione su: ")
+		fmt.Println("https://scm.code.telecomitalia.it/00246506/sendsms/issues")
+		os.Exit(0)
+	}
 
 	// Recupera valori dal file json di configurazione passato come argomento.
 	err := gonfig.GetConf(confFile, &conf)
