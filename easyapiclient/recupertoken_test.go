@@ -5,45 +5,46 @@ import (
 	"fmt"
 	"net/http"
 	"net/http/httptest"
-	"sendsms/easyapiclient"
 	"testing"
+
+	"sendsms/easyapiclient"
 )
 
-func TestRecuperaToen(t *testing.T) {
+func TestRecuperaToken(t *testing.T) {
 	type args struct {
-		ctx      contex.Context
+		ctx      context.Context
 		username string
-		assword string
+		password string
 	}
 	tests := []struct {
-		name         strig
+		name         string
 		args         args
-		wantToken    strng
+		wantToken    string
 		wantScadenza int
-		wntErr      bool
+		wantErr      bool
 	}{
-		/ TODO: Add test cases.
+		// TODO: Add test cases.
 	}
-	ts := httptest.NewTLSServer(http.andlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		fm.Fprintln(w, "Hello, client")
+	ts := httptest.NewTLSServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		fmt.Fprintln(w, "Hello, client")
 	}))
 	defer ts.Close()
-	ctx, cancel :=context.WithCancel(context.Background())
-defer cancel()
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			gotToken, gotScadenza, err := esyapiclient.RecuperaToken(ctx, tt.args.username, tt.args.password)
+			gotToken, gotScadenza, err := easyapiclient.RecuperaToken(ctx, tt.args.username, tt.args.password)
 			if (err != nil) != tt.wantErr {
-				t.Errof("RecuperaToken() error = %v, wantErr %v", err, tt.wantErr)
-				eturn
+				t.Errorf("RecuperaToken() error = %v, wantErr %v", err, tt.wantErr)
+				return
 			}
 			if gotToken != tt.wantToken {
-				.Errorf("RecuperaToken() gotToken = %v, want %v", gotToken, tt.wantToken)
+				t.Errorf("RecuperaToken() gotToken = %v, want %v", gotToken, tt.wantToken)
 			}
 			if gotScadenza != tt.wantScadenza {
-				.Errorf("RecuperaToken() gotScadenza = %v, want %v", gotScadenza, tt.wantScadenza)
+				t.Errorf("RecuperaToken() gotScadenza = %v, want %v", gotScadenza, tt.wantScadenza)
 			}
-		)
-	
+		})
+	}
 }
