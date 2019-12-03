@@ -3,7 +3,6 @@ package main
 import (
 	"context"
 	"flag"
-	"fmt"
 	"log"
 	"os"
 	"sendsms/easyapiclient"
@@ -14,7 +13,7 @@ import (
 // Configuration tiene gli elementi di configurazione
 type Configuration struct {
 	UsernameEasyaPi string `json:"username"`
-	Password string `json:"password"`
+	Password        string `json:"password"`
 }
 
 var conf Configuration
@@ -37,7 +36,7 @@ func main() {
 	}
 
 	// Recupera un token sms valido.
-	fmt.Println(conf)
+	// fmt.Println(conf)
 	token, err := easyapiclient.RecuperaToken(ctx, conf.UsernameEasyaPi, conf.Password)
 	if err != nil {
 		log.Printf("Errore nel recupero del token sms: %s\n", err.Error())

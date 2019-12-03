@@ -30,7 +30,7 @@ const easyapiGetTokenURL = "https://easyapi.telecomitalia.it:8248/token"
 func RecuperaToken(ctx context.Context, username, password string) (token string, err error) {
 
 	credenziali := username + ":" + password
-	fmt.Println(credenziali)
+	// fmt.Println(credenziali)
 	authenticator := base64.StdEncoding.EncodeToString([]byte(credenziali))
 
 	// Crea variabile per archiviare i risulati.
