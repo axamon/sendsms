@@ -1,3 +1,7 @@
+// Copyright 2019 Alberto Bregliano. All rights reserved.
+// Use of this source code is governed by a BSD-style
+// license that can be found in the LICENSE file.
+
 package main
 
 import (
@@ -10,55 +14,54 @@ import (
 	"github.com/tkanos/gonfig"
 )
 
-// Configuration tiene gli elementi di configurazione
-type Configuration struct {
-	UsernameEasyaPi string `json:"username"`
-	Password        string `json:"password"`
-}
-
+// conf è una istanza del type Configuration con username e password da usare
+// per accedere a Easyapi
 var conf Configuration
-var file = flag.String("file", "conf.json", "File di configurazione")
+
+// confFile è il file json in cui sono scritte username e password da usare.
+var confFile string
+
+// cell è il numero di cellulare a cui inviare SMS.
+var cell string
+
+// cell è il messaggio da inviare.
+var messaggio string
 
 func main() {
-	// Creo il contesto inziale che verrà propagato alle go-routine
-	// con la funzione cancel per uscire dal programma in modo pulito.
+	// Crea il contesto iniziale e la funzione cancel per uscire
+	// dal programma in modo pulito.
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
+
+	flag.StringVar(&confFile, "file", "conf.json", "File di configurazione")
+	flag.StringVar(&cell, "c", "", "Cellulare a cui inviare SMS")
+	flag.StringVar(&messaggio, "m", "", "Messaggio  da inviare")
 
 	// Parsa i parametri non di default passati all'avvio.
 	flag.Parse()
 
-	// Recupera valori dal file di configurazione passato come argomento.
-	err := gonfig.GetConf(*file, &conf)
+	// Recupera valori dal file json di configurazione passato come argomento.
+	err := gonfig.GetConf(confFile, &conf)
 	if err != nil {
-		log.Printf("Errore Impossibile recuperare informazioni dal file di configurazione: %s", *file)
-		os.Exit(1)
+		log.Fatalf("Errore Impossibile recuperare informazioni dal file di configurazione: %s", confFile)
 	}
 
-	// Recupera un token sms valido.
-	// fmt.Println(conf)
+	// Recupera un token per inviare sms valido.
 	token, err := easyapiclient.RecuperaToken(ctx, conf.UsernameEasyaPi, conf.Password)
 	if err != nil {
-		log.Printf("Errore nel recupero del token sms: %s\n", err.Error())
-		os.Exit(1)
+		log.Fatalf("Errore nel recupero del token sms: %s\n", err.Error())
 	}
-
-	// fmt.Printf("token %s in scadenza tra %d secondi\n", token, scadenza)
 
 	// Recupera lo shortnumber da usare per inviare sms.
 	shortnumber, err := Info(ctx, token)
-
 	if err != nil {
-		log.Printf("Errore, impossibile recuperare shortnumber %s\n", err.Error())
-		os.Exit(1)
+		log.Fatalf("Errore, impossibile recuperare shortnumber %s\n", err.Error())
 	}
 
-	// Invia sms.
-	err = InviaSms(ctx, token, shortnumber, os.Args[1], os.Args[2])
-
+	// InviaSms invia sms usando le informazioni recuperate in precedenza.
+	err = InviaSms(ctx, token, shortnumber, cell, messaggio)
 	if err != nil {
-		log.Printf("Errore, sms non inviato: %s\n", err)
-		os.Exit(1)
+		log.Fatalf("Errore, sms non inviato: %s\n", err)
 	}
 
 	// Termina correttamente.

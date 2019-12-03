@@ -1,3 +1,7 @@
+// Copyright 2019 Alberto Bregliano. All rights reserved.
+// Use of this source code is governed by a BSD-style
+// license that can be found in the LICENSE file.
+
 package main
 
 import (
@@ -19,15 +23,6 @@ var isToken = regexp.MustCompile(`(?m)[0-9a-z]{8,8}-[0-9a-z]{4,4}-[0-9a-z]{4,4}-
 
 // InviaSms invia un sms al destinatario.
 func InviaSms(ctx context.Context, token, shortnumber, cell, message string) (err error) {
-
-	type sms struct {
-		Address  string `xml:"address"`
-		Msgid    string `xml:"msgid"`
-		Notify   string `xml:"notify"`
-		Validity string `xml:"validity"`
-		Oadc     string `xml:"oadc"`
-		Message  string `xml:"message"`
-	}
 
 	// Crea nuova struttura per sms.
 	nuovoSMS := new(sms)

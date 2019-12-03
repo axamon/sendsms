@@ -1,3 +1,7 @@
+// Copyright 2019 Alberto Bregliano. All rights reserved.
+// Use of this source code is governed by a BSD-style
+// license that can be found in the LICENSE file.
+
 package easyapiclient_test
 
 import (
@@ -34,16 +38,13 @@ func TestRecuperaToken(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			gotToken, gotScadenza, err := easyapiclient.RecuperaToken(ctx, tt.args.username, tt.args.password)
+			gotToken, err := easyapiclient.RecuperaToken(ctx, tt.args.username, tt.args.password)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("RecuperaToken() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
 			if gotToken != tt.wantToken {
 				t.Errorf("RecuperaToken() gotToken = %v, want %v", gotToken, tt.wantToken)
-			}
-			if gotScadenza != tt.wantScadenza {
-				t.Errorf("RecuperaToken() gotScadenza = %v, want %v", gotScadenza, tt.wantScadenza)
 			}
 		})
 	}
