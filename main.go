@@ -2,6 +2,7 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
+// package sendsms permette l'invio di SMS.
 package main
 
 import (
@@ -20,22 +21,13 @@ import (
 var conf Configuration
 
 // confFile è il file json in cui sono scritte username e password da usare.
-var confFile string
-
 // cell è il numero di cellulare a cui inviare SMS.
-var cell string
-
-// cell è il messaggio da inviare.
-var messaggio string
+// messaggio è il messaggio da inviare.
+var confFile, cell, messaggio string
 
 var author bool
 
-func main() {
-	// Crea il contesto iniziale e la funzione cancel per uscire
-	// dal programma in modo pulito.
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
-
+func init() {
 	flag.BoolVar(&author, "a", false, "Per segnalizioni all'autore")
 	flag.StringVar(&confFile, "file", "conf.json", "File di configurazione")
 	flag.StringVar(&cell, "c", "", "Cellulare a cui inviare SMS")
@@ -49,6 +41,13 @@ func main() {
 		fmt.Println("https://scm.code.telecomitalia.it/00246506/sendsms/issues")
 		os.Exit(0)
 	}
+}
+
+func main() {
+	// Crea il contesto iniziale e la funzione cancel per uscire
+	// dal programma in modo pulito.
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
 
 	// Recupera valori dal file json di configurazione passato come argomento.
 	err := gonfig.GetConf(confFile, &conf)
@@ -68,8 +67,8 @@ func main() {
 		log.Fatalf("Errore, impossibile recuperare shortnumber %s\n", err.Error())
 	}
 
-	// InviaSms invia sms usando le informazioni recuperate in precedenza.
-	err = InviaSms(ctx, token, shortnumber, cell, messaggio)
+	// inviaSms invia sms usando le informazioni recuperate in precedenza.
+	err = inviaSms(ctx, token, shortnumber, cell, messaggio)
 	if err != nil {
 		log.Fatalf("Errore, sms non inviato: %s\n", err)
 	}
