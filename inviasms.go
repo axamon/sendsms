@@ -5,13 +5,9 @@
 package main
 
 import (
-	"bytes"
 	"context"
-	"crypto/tls"
 	"encoding/xml"
 	"fmt"
-	"io/ioutil"
-	"net/http"
 	"regexp"
 	"time"
 )
@@ -57,45 +53,8 @@ func inviaSms(ctx context.Context, token, shortnumber, cell, message string) err
 			err = fmt.Errorf("Impossibile parsare dati in xml: %s", err.Error())
 		}
 
-		// Accetta anche certificati https non validi.
-		tr := &http.Transport{
-			TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
-		}
+		_, err = httpRequest(ctxInvio, easyapiMTURL, "POST", token, bodyreq)
 
-		// Crea il cliet http.
-		client := &http.Client{Transport: tr}
-
-		// Crea la request da inviare.
-		req, err := http.NewRequestWithContext(ctxInvio, "POST", easyapiMTURL, bytes.NewBuffer(bodyreq))
-		if err != nil {
-			err = fmt.Errorf("Errore creazione request: %v: %s", req, err.Error())
-		}
-
-		// Aggiunge alla request l'autenticazione.
-		req.Header.Set("Authorization", "Bearer "+token)
-
-		// Aggiunge alla request gli header per passare le informazioni.
-		req.Header.Set("Content-Type", "application/xml")
-
-		// Invia la request HTTP.
-		resp, err := client.Do(req)
-		if err != nil {
-			err = fmt.Errorf("Errore nella richiesta http %s", err.Error())
-		}
-
-		// Body va chiuso come da specifica.
-		defer resp.Body.Close()
-
-		// Se la http response ha un codice di errore esce.
-		if resp.StatusCode > 299 {
-			err = fmt.Errorf("Impossibile inviare sms. http statuscode: %d", resp.StatusCode)
-		}
-
-		// Legge il body della risposta.
-		_, err = ioutil.ReadAll(resp.Body)
-		if err != nil {
-			err = fmt.Errorf("Impossibile leggere risposta. client http: %s", err.Error())
-		}
 	}
 
 	return err
