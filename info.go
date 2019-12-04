@@ -18,14 +18,14 @@ func Info(ctx context.Context, token string) (shortnumber string, err error) {
 
 	bodyresp, err := httpRequest(ctx, easyapiGetInfo, "GET", token, nil)
 	if err != nil {
-		err = fmt.Errorf("Errore Richiesta http fallita: %v", err.Error())
+		return "", fmt.Errorf("Errore Richiesta http fallita: %v", err.Error())
 	}
 
 	sNum := new(ShortNum)
 
 	err = xml.Unmarshal(bodyresp, &sNum)
 	if err != nil {
-		err = fmt.Errorf("Error Impossibile effettuare caricamento shortnumber: %v", err.Error())
+		return "", fmt.Errorf("Error Impossibile effettuare caricamento shortnumber: %v", err.Error())
 	}
 
 	return sNum.Number, err
