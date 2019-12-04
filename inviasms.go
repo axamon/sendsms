@@ -15,12 +15,10 @@ import (
 const easyapiMTURL = "https://easyapi.telecomitalia.it:8248/sms/v1/mt"
 
 // inviaSms invia un sms al destinatario.
-func inviaSms(ctx context.Context, token, shortnumber, cell, message string) error {
+func inviaSms(ctx context.Context, token, shortnumber, cell, message string) (err error) {
 	// Modificato il contesto impostando un timout.
 	ctxInvio, cancel := context.WithTimeout(ctx, 5*time.Second)
 	defer cancel()
-
-	var err error
 
 	select {
 	// Se la funzione impiega più del tempo previsto dal timeout esce con errore.
@@ -54,6 +52,9 @@ func inviaSms(ctx context.Context, token, shortnumber, cell, message string) err
 		}
 
 		_, err = httpRequest(ctxInvio, easyapiMTURL, "POST", token, bodyreq)
+		if err != nil {
+			err = fmt.Errorf("Errore Richiesta http fallita: %v", err.Error())
+		}
 
 	}
 
