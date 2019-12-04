@@ -13,7 +13,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
-	"log"
 	"net/http"
 	"strings"
 )
@@ -28,17 +27,14 @@ type TokenResponse struct {
 
 const easyapiGetTokenURL = "https://easyapi.telecomitalia.it:8248/token"
 
-// RecuperaToken restituisce il token attuale
-// e la scadenza dello stesso in sec.
-// Se il token è scaduto ne viene generato uno nuovo.
+// RecuperaToken restituisce un token Easyapi valido.
 func RecuperaToken(ctx context.Context, username, password string) (token string, err error) {
 
+	// Recupera le credenziali per Easyapi.
 	credenziali := username + ":" + password
-	// fmt.Println(credenziali)
-	authenticator := base64.StdEncoding.EncodeToString([]byte(credenziali))
 
-	// Crea variabile per archiviare i risulati.
-	tokeninfo := new(TokenResponse)
+	// Encoda le credenziali per passarle come http header.
+	authenticator := base64.StdEncoding.EncodeToString([]byte(credenziali))
 
 	// Accetta anche certificati https non validi.
 	tr := &http.Transport{
@@ -52,14 +48,10 @@ func RecuperaToken(ctx context.Context, username, password string) (token string
 	body := strings.NewReader(`grant_type=client_credentials`)
 
 	// Crea la request da inviare.
-	req, err := http.NewRequest("POST", easyapiGetTokenURL, body)
+	req, err := http.NewRequestWithContext(ctx, "POST", easyapiGetTokenURL, body)
 	if err != nil {
-		log.Printf("Errore creazione request: %v\n", req)
-		return
+		err = fmt.Errorf("Errore creazione request: %v, %v", req, err)
 	}
-
-	// Aggiunge alla request il contesto.
-	req.WithContext(ctx)
 
 	// Aggiunge alla request l'autenticazione.
 	req.Header.Set("Authorization", "Basic "+authenticator)
@@ -77,34 +69,31 @@ func RecuperaToken(ctx context.Context, username, password string) (token string
 	// Invia la request HTTP.
 	resp, err := client.Do(req)
 	if err != nil {
-		return "", fmt.Errorf("Errore: %v", err.Error())
+		err = fmt.Errorf("Errore: %v", err.Error())
 	}
 
 	// Se la http response ha un codice di errore esce.
 	if resp.StatusCode > 299 {
-		return "", fmt.Errorf("Impossibile recuperare token http statuscode: %d", resp.StatusCode)
+		err = fmt.Errorf("Impossibile recuperare token http statuscode: %d", resp.StatusCode)
 	}
 
 	// Legge il body della risposta.
 	bodyresp, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		return "", fmt.Errorf("Error Impossibile leggere risposta client http: %s", err.Error())
+		err = fmt.Errorf("Error Impossibile leggere risposta client http: %s", err.Error())
 	}
-
-	// fmt.Println(string(bodyresp))
 
 	// Come da specifica chiude il body della response.
 	defer resp.Body.Close()
 
+	// Crea variabile per archiviare i risulati.
+	tokeninfo := new(TokenResponse)
+
 	// Effettua l'unmashalling dei dati nella variabile.
 	err = json.Unmarshal(bodyresp, &tokeninfo)
 	if err != nil {
-		return "", fmt.Errorf("Errore nella scomposizione del json: %s", err.Error())
+		err = fmt.Errorf("Errore nella scomposizione del json: %s", err.Error())
 	}
-	/*
-		fmt.Printf("Token attuale: \t%s\nScadenza tra: \t%d secondi\n",
-			tokeninfo.Token,
-			tokeninfo.Scadenza)
-	*/
-	return tokeninfo.Token, nil
+
+	return tokeninfo.Token, err
 }
