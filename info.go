@@ -18,10 +18,6 @@ const easyapiGetInfo = "https://easyapi.telecomitalia.it:8248/sms/v1/info"
 // Info recupera lo shortnumber da usare per inviare sms.
 func Info(ctx context.Context, token string) (shortnumber string, err error) {
 
-	sNum := new(ShortNum)
-
-	bearertoken := "Bearer " + token
-
 	// Accetta anche certificati https non validi.
 	tr := &http.Transport{
 		TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
@@ -31,16 +27,13 @@ func Info(ctx context.Context, token string) (shortnumber string, err error) {
 	client := &http.Client{Transport: tr}
 
 	// Crea la request da inviare.
-	req, err := http.NewRequest("GET", easyapiGetInfo, nil)
+	req, err := http.NewRequestWithContext(ctx, "GET", easyapiGetInfo, nil)
 	if err != nil {
-		return "", fmt.Errorf("Errore creazione request: %v", req)
+		err = fmt.Errorf("Errore creazione request: %v", req)
 	}
 
-	// Aggiunge alla request il contesto.
-	req.WithContext(ctx)
-
 	// Aggiunge alla request l'autenticazione.
-	req.Header.Set("Authorization", bearertoken)
+	req.Header.Set("Authorization", "Bearer "+token)
 
 	// Aggiunge alla request gli header per passare le informazioni.
 	//req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
@@ -48,29 +41,29 @@ func Info(ctx context.Context, token string) (shortnumber string, err error) {
 	// Invia la request HTTP.
 	resp, err := client.Do(req)
 	if err != nil {
-		return "", fmt.Errorf("Errore %v", err.Error())
+		err = fmt.Errorf("Errore %v", err.Error())
 	}
 
 	// Se la http response ha un codice di errore esce.
 	if resp.StatusCode > 299 {
-		return "", fmt.Errorf("Errore %d", resp.StatusCode)
+		err = fmt.Errorf("Errore %d", resp.StatusCode)
 	}
 
 	// Legge il body della risposta.
 	bodyresp, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		return "", fmt.Errorf("Impossibile leggere risposta client http: %v", err.Error())
+		err = fmt.Errorf("Impossibile leggere risposta client http: %v", err.Error())
 	}
 
 	// Come da specifiche va chiuso il body.
 	defer resp.Body.Close()
 
+	sNum := new(ShortNum)
+
 	err = xml.Unmarshal(bodyresp, &sNum)
 	if err != nil {
-		return "", fmt.Errorf("Error Impossibile effettuare caricamento shortnumber: %v", err.Error())
+		err = fmt.Errorf("Error Impossibile effettuare caricamento shortnumber: %v", err.Error())
 	}
-
-	// fmt.Println(sNum.Number)
 
 	return sNum.Number, err
 

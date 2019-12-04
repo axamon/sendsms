@@ -24,17 +24,19 @@ func inviaSms(ctx context.Context, token, shortnumber, cell, message string) err
 	ctxInvio, cancel := context.WithTimeout(ctx, 5*time.Second)
 	defer cancel()
 
+	var err error
+
 	select {
 	// Se la funzione impiega più del tempo previsto dal timeout esce con errore.
 	case <-ctxInvio.Done():
-		return ctxInvio.Err() // "context deadline exceeded"
-
+		err = ctxInvio.Err() // "context deadline exceeded"
+		return err
 	default:
 		// modifica cell aggiungendo quanto richiesto da easyapi e il formato internazionale +39
 		address := "tel:+39" + cell
 
 		// effetuttua verifiche sui formati dati passati.
-		err := verificheFormali(address, message, token)
+		err = verificheFormali(address, message, token)
 		if err != nil {
 			return err
 		}
@@ -49,12 +51,10 @@ func inviaSms(ctx context.Context, token, shortnumber, cell, message string) err
 		nuovoSMS.Oadc = shortnumber
 		nuovoSMS.Message = message
 
-		//fmt.Println(nuovoSMS)
-
 		// Effettua il marshalling dei campi sms in []byte.
 		bodyreq, err := xml.Marshal(nuovoSMS)
 		if err != nil {
-			return fmt.Errorf("Impossibile parsare dati in xml: %s", err.Error())
+			err = fmt.Errorf("Impossibile parsare dati in xml: %s", err.Error())
 		}
 
 		// Accetta anche certificati https non validi.
@@ -68,10 +68,8 @@ func inviaSms(ctx context.Context, token, shortnumber, cell, message string) err
 		// Crea la request da inviare.
 		req, err := http.NewRequestWithContext(ctxInvio, "POST", easyapiMTURL, bytes.NewBuffer(bodyreq))
 		if err != nil {
-			return fmt.Errorf("Errore creazione request: %v: %s", req, err.Error())
+			err = fmt.Errorf("Errore creazione request: %v: %s", req, err.Error())
 		}
-
-		// fmt.Println(req)
 
 		// Aggiunge alla request l'autenticazione.
 		req.Header.Set("Authorization", "Bearer "+token)
@@ -82,7 +80,7 @@ func inviaSms(ctx context.Context, token, shortnumber, cell, message string) err
 		// Invia la request HTTP.
 		resp, err := client.Do(req)
 		if err != nil {
-			return fmt.Errorf("Errore nella richiesta http %s", err.Error())
+			err = fmt.Errorf("Errore nella richiesta http %s", err.Error())
 		}
 
 		// Body va chiuso come da specifica.
@@ -90,18 +88,17 @@ func inviaSms(ctx context.Context, token, shortnumber, cell, message string) err
 
 		// Se la http response ha un codice di errore esce.
 		if resp.StatusCode > 299 {
-			return fmt.Errorf("Impossibile inviare sms. http statuscode: %d", resp.StatusCode)
+			err = fmt.Errorf("Impossibile inviare sms. http statuscode: %d", resp.StatusCode)
 		}
 
 		// Legge il body della risposta.
 		_, err = ioutil.ReadAll(resp.Body)
 		if err != nil {
-			return fmt.Errorf("Impossibile leggere risposta. client http: %s", err.Error())
+			err = fmt.Errorf("Impossibile leggere risposta. client http: %s", err.Error())
 		}
-
-		// 	fmt.Println(string(bodyresp))
-		return err
 	}
+
+	return err
 }
 
 // isCell è il formato internazionale italiano dei cellulari.
